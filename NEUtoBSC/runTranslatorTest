@@ -1,0 +1,4 @@
+#!/bin/bash
+rm test.mesh
+gfortran -o testRun.out NEUtoBSC.f90
+./testRun.out Box2D_GAMBIT.neu test.mesh
