@@ -28,7 +28,7 @@ REAL, DIMENSION(:,:), ALLOCATABLE   :: nodeArray
 REAL, DIMENSION(:,:), ALLOCATABLE   :: elementArray
 
 ! writing formats
-formatNodes = "(I7,3E19.7)"
+formatNodes = "(I7,3F19.14)"
 formatEl1   = "(I7,A7,5(I7))"
 formatEl2   = "(4(I7))"
 formatBC    = "(A7,2(I12))"
@@ -56,7 +56,7 @@ OPEN(UNIT = NEUUnit, FILE = meshFileToRead, STATUS = "OLD")
 OPEN(UNIT = BSCUnit, FILE = meshFileToWrite, STATUS = "NEW")
 
 ! Write the header for the bsc file
-WRITE(BSCUnit,*) "simple mesh format version = 1.1"
+WRITE(BSCUnit,"(32A)") "simple mesh format version = 1.1"
 
 ! Read in the first couple of lines from the .neu file; they're just header info
 ios = 0   ! if 0 the file is read successfully, of non-zero there was an error
@@ -81,7 +81,7 @@ READ(NEUUnit, *, IOSTAT = ios )
 ! Translate nodal information into BSC format -------------------------------------
 
 ! Indicate we are in the "nodes" section of BSC file
-WRITE(BSCUnit,*) "nodes"
+WRITE(BSCUnit,"(5A)") "nodes"
 
 ! Loop through all the nodes, saving them to nodeArray and writing them to the bsc file
 DO i = 1,totalNodeNum
@@ -102,12 +102,12 @@ DO i = 1,totalNodeNum
 ENDDO
 
 ! End node section
-WRITE(BSCUnit,*) "end nodes"
+WRITE(BSCUnit,"(9A)") "end nodes"
 
 ! Translate element information into BSC format -------------------------------------
 
 ! Indicate we are in the "elements" section of BSC file
-WRITE(BSCUnit,*) "elements"
+WRITE(BSCUnit,"(8A)") "elements"
 
 ! Read in the next two lines of the NEU file to skip them; they're headers
 READ(NEUUnit, *, IOSTAT = ios )
@@ -131,7 +131,7 @@ DO i = 1,totalElNum
 ENDDO
 
 ! End element section
-WRITE(BSCUnit, *) "end elements"
+WRITE(BSCUnit, "(A12)") "end elements"
 READ(NEUUnit, *, IOSTAT = ios )
 
 ! Keep reading lines until you reach the boundary section -------------------------------
@@ -143,7 +143,7 @@ END DO
 ! Translate boundary information into BSC format -------------------------------------
 
 ! Indicate we are in the "boundary" section of BSC file
-WRITE(BSCUnit,*) "boundary"
+WRITE(BSCUnit,"(A8)") "boundary"
 
 ! Loop through each boundary condition
 DO i = 1,totalBCNum
@@ -166,7 +166,7 @@ DO i = 1,totalBCNum
     READ(NEUUnit,*, IOSTAT = ios) tempRead
 ENDDO
 
-WRITE(BSCUnit,*) "end boundary"
+WRITE(BSCUnit,"(A12)") "end boundary"
 
 ! NOTE: This does NOT arrange the elements in any particular order in the output file; 
 ! I'm not sure if that will cause problems in the mesh reader. I don't think it will,
