@@ -1,0 +1,85 @@
+CONTROL INFO         1.2.1
+** GAMBIT NEUTRAL FILE
+C:/Users/zpyle8687/Documents/MeshTranslators/NEUtoBSC/Aerospike_GAMBIT.neu
+PROGRAM:  Pointwise                VERSION:  17   
+21 Nov 2023 10:15:32
+     NUMNP     NELEM     NGRPS    NBSETS     NDFCD     NDFVL
+        18         9         1         8         2         2
+ENDOFSECTION
+NODAL COORDINATES    1.2.1
+         1   1.75000000000E-03   3.00000000000E+00
+         2   1.75000000000E-03   1.15082128295E+00
+         3   8.57100000000E-01   1.00000000000E+00
+         4   8.57100000000E-01   3.00000000000E+00
+         5   8.00000000000E+00   1.00000000000E+00
+         6   8.00000000000E+00   3.00000000000E+00
+         7   8.57100000000E-01   5.00000000000E-01
+         8   1.75000000000E-03   6.50821282949E-01
+         9   8.00000000000E+00   5.00000000000E-01
+        10   8.57100000000E-01  -5.00000000000E-01
+        11   8.00000000000E+00  -5.00000000000E-01
+        12   8.57100000000E-01  -1.00000000000E+00
+        13   8.00000000000E+00  -1.00000000000E+00
+        14   8.57100000000E-01  -3.00000000000E+00
+        15   8.00000000000E+00  -3.00000000000E+00
+        16  -1.04172024197E-15  -1.15112985517E+00
+        17  -1.77636530973E-15  -3.00000000000E+00
+        18  -8.52665716354E-16  -6.51129855165E-01
+ENDOFSECTION
+ELEMENTS/CELLS       1.2.1
+       1  2  4        2       3       4       1
+       2  2  4        8       7       3       2
+       3  2  4       16      12      10      18
+       4  2  4       17      14      12      16
+       5  2  4        3       5       6       4
+       6  2  4        7       9       5       3
+       7  2  4       10      11       9       7
+       8  2  4       12      13      11      10
+       9  2  4       14      15      13      12
+ENDOFSECTION
+ELEMENT GROUP        1.2.1
+GROUP:          1 ELEMENTS:          9 MATERIAL:          0 NFLAGS:          0
+Unspecified                     
+       0
+       1       2       3       4       5       6       7       8       9
+ENDOFSECTION
+BOUNDARY CONDITIONS  1.2.1
+Bot                                    1       2       0       0
+         4    2    1
+         9    2    1
+ENDOFSECTION
+BOUNDARY CONDITIONS  1.2.1
+BotRamp                                1       1       0       0
+         3    2    3
+ENDOFSECTION
+BOUNDARY CONDITIONS  1.2.1
+FrontBot                               1       2       0       0
+         3    2    4
+         4    2    4
+ENDOFSECTION
+BOUNDARY CONDITIONS  1.2.1
+FrontTop                               1       2       0       0
+         1    2    4
+         2    2    4
+ENDOFSECTION
+BOUNDARY CONDITIONS  1.2.1
+Right                                  1       5       0       0
+         5    2    2
+         6    2    2
+         7    2    2
+         8    2    2
+         9    2    2
+ENDOFSECTION
+BOUNDARY CONDITIONS  1.2.1
+SpikeBase                              1       1       0       0
+         7    2    4
+ENDOFSECTION
+BOUNDARY CONDITIONS  1.2.1
+Top                                    1       2       0       0
+         1    2    3
+         5    2    3
+ENDOFSECTION
+BOUNDARY CONDITIONS  1.2.1
+TopRamp                                1       1       0       0
+         2    2    1
+ENDOFSECTION

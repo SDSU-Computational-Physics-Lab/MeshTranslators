@@ -116,7 +116,7 @@ READ(NEUUnit, *, IOSTAT = ios )
 ! Loop through all elements, save to elementArray, write to BSC file
 DO i = 1,totalElNum
     ! Read in element data
-    READ(NEUUnit, *, IOSTAT = ios) elNum, elType, DUMMY, topLeftNode, botLeftNode, botRightNode, topRightNode
+    READ(NEUUnit, *, IOSTAT = ios) elNum, elType, DUMMY, botLeftNode, botRightNode, topRightNode, topLeftNode
 
     ! Save element data to array
     elementArray(i,1) = elNum
