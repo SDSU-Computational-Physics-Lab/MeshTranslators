@@ -1,0 +1,7 @@
+#!/bin/bash
+rm TranslatedMesh.mesh 
+rm *.o *.out *.mod
+gfortran -c Module_MeshTranslator.f90
+gfortran -c TranslateMeshToBSC.f90
+gfortran -o translateMesh.out Module_MeshTranslator.o TranslateMeshToBSC.o
+./translateMesh.out Box2D.mesh TranslatedMesh.mesh

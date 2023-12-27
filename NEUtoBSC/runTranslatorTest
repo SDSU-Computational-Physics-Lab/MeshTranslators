@@ -1,7 +1,0 @@
-#!/bin/bash
-rm aerospikeTest.mesh
-gfortran -o testRun.out NEUtoBSC.f90
-./testRun.out Aerospike_GAMBIT.neu aerospikeTest.mesh
-#rm boxTest.mesh
-#gfortran -o testRun.out NEUtoBSC.f90
-#./testRun.out Box2D_GAMBIT.neu boxTest.mesh
