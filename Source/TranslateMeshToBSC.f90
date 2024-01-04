@@ -17,8 +17,8 @@ PROGRAM TranslateMeshToBSC
     IMPLICIT NONE 
 
     ! Declare Variables 
-    CHARACTER(LEN=20) :: meshFileToRead    ! path to mesh file you are converting
-    CHARACTER(LEN=20) :: meshFileToWrite   ! path to mesh file you are creating
+    CHARACTER(LEN=99) :: meshFileToRead    ! path to mesh file you are converting
+    CHARACTER(LEN=99) :: meshFileToWrite   ! path to mesh file you are creating
     CHARACTER(LEN=20) :: inputMeshType
     INTEGER           :: polyOrder
     INTEGER           :: inputFileUnit  = 1
@@ -38,7 +38,7 @@ PROGRAM TranslateMeshToBSC
     CALL getarg(2,meshFileToWrite)
 
     ! Terminal line message for user
-    WRITE(*,*) "Translating ", meshFileToRead, " to ", meshFileToWrite
+    WRITE(*,*) "Translating ", TRIM(meshFileToRead), " to ", TRIM(meshFileToWrite)
 
     ! Open input and output files
     OPEN(UNIT = inputFileUnit, FILE = meshFileToRead, STATUS = "OLD")
@@ -51,7 +51,7 @@ PROGRAM TranslateMeshToBSC
 
     inputMeshType = TRIM(inputMeshType)
     ! Debug statement 
-    WRITE(*,*) inputMeshType
+    !WRITE(*,*) inputMeshType
 
     ! Call appropriate translator
     SELECT CASE (inputMeshType)
