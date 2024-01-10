@@ -55,29 +55,34 @@ PROGRAM TranslateMeshToBSC
 
     ! Call appropriate translator
     SELECT CASE (inputMeshType)
-        CASE ('ISM') 
-            CALL ReadHOHQMeshFile_ISM(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
+        CASE ('ISM_2D') 
+            CALL ReadHOHQMeshFile_ISM_2D(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
+            CALL WriteBSCMeshFile_2D(outputFileUnit,nodeArray,elArray,BCArray,polyOrder)
 
-        CASE ('ISM-V2') 
-            CALL ReadHOHQMeshFile_ISMV2(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
+        CASE ('ISM-V2_2D') 
+            CALL ReadHOHQMeshFile_ISMV2_2D(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
+            CALL WriteBSCMeshFile_2D(outputFileUnit,nodeArray,elArray,BCArray,polyOrder)
 
-        CASE ('ISM-MM') 
-            CALL ReadHOHQMeshFile_ISMMM(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
+        CASE ('ISM-MM_2D') 
+            CALL ReadHOHQMeshFile_ISMMM_2D(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
+            CALL WriteBSCMeshFile_2D(outputFileUnit,nodeArray,elArray,BCArray,polyOrder)
 
-        CASE ('ABAQUS') 
-            CALL ReadHOHQMeshFile_ABAQUS(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
+        CASE ('ABAQUS_2D') 
+            CALL ReadHOHQMeshFile_ABAQUS_2D(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
+            CALL WriteBSCMeshFile_2D(outputFileUnit,nodeArray,elArray,BCArray,polyOrder)
 
-        CASE ('NEU') 
-            CALL ReadPointwiseMeshFile_NEU(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
+        CASE ('NEU_2D') 
+            CALL ReadPointwiseMeshFile_NEU_2D(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
+            CALL WriteBSCMeshFile_2D(outputFileUnit,nodeArray,elArray,BCArray,polyOrder)
+
+        CASE ('NEU_3D') 
+            CALL ReadPointwiseMeshFile_NEU_3D(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
+            CALL WriteBSCMeshFile_3D(outputFileUnit,nodeArray,elArray,BCArray,polyOrder)
 
         CASE ('BSC') 
             WRITE(*,*) 'Input mesh file already in BSC format, no need to translate!'
 
     END SELECT
-
-    IF (inputMeshType /= 'BSC') THEN
-        CALL WriteBSCMeshFile(outputFileUnit,nodeArray,elArray,BCArray,polyOrder)
-    ENDIF
 
     ! Close input and output files
     CLOSE(inputFileUnit)

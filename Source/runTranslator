@@ -1,5 +1,5 @@
 #!/bin/bash
-meshName="AerospikeTest"
+meshName="SHEAR3D_TEST"
 rm $meshName.mesh 
 rm *.o *.out *.mod
 

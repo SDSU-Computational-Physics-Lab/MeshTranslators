@@ -33,6 +33,7 @@ MODULE MeshTranslator
         ! Declare local variables 
         INTEGER           :: ios
         CHARACTER(LEN=40) :: readLine
+        INTEGER           :: NUMNP, NELEM, NGRPS, NBSETS, NDFCD, NDFVL
 
         ! Read in the first line of the mesh file 
         READ(inputFileUnit, *, IOSTAT=ios) readLine
@@ -43,22 +44,52 @@ MODULE MeshTranslator
         ! compare the header to known headers of the format 
         readLine = TRIM(readLine)
         IF (readLine == 'ISM-V2') THEN
-            inputMeshType = 'ISM-V2'
+            ! Check if this is a 2D or 3D mesh file
+            inputMeshType = 'ISM-V2_2D'
 
         ELSEIF (readLine == 'ISM-MM') THEN 
-            inputMeshType = 'ISM-MM'
+            ! Check if this is a 2D or 3D mesh file
+            inputMeshType = 'ISM-MM_2D'
 
         ELSEIF (readLine == '*Heading') THEN
-            inputMeshType = 'ABAQUS'
+            ! Check if this is a 2D or 3D mesh file
+            inputMeshType = 'ABAQUS_2D'
 
         ELSEIF (readLine == 'CONTROL') THEN 
-            inputMeshType = 'NEU' 
+
+            ! Check if this is a 2D or 3D mesh file
+            READ(inputFileUnit, *, IOSTAT = ios) readLine
+            READ(inputFileUnit, *, IOSTAT = ios) readLine
+            READ(inputFileUnit, *, IOSTAT = ios) readLine
+            READ(inputFileUnit, *, IOSTAT = ios) readLine
+            READ(inputFileUnit, *, IOSTAT = ios) readLine
+            READ(inputFileUnit, *, IOSTAT = ios) NUMNP, NELEM, NGRPS, NBSETS, NDFCD, NDFVL
+            
+            IF (NDFCD == 2) THEN
+                inputMeshType = 'NEU_2D' 
+            ELSEIF (NDFCD == 3) THEN 
+                inputMeshType = 'NEU_3D' 
+            ELSE
+                WRITE(*,*) "ERROR: Unable to determine if this is an NEU_2D or NEU_3D file!"
+                WRITE(*,*) "ERROR: Aborting mesh translation"
+                RETURN
+            ENDIF
+
+
+            BACKSPACE(inputFileUnit)
+            BACKSPACE(inputFileUnit)
+            BACKSPACE(inputFileUnit)
+            BACKSPACE(inputFileUnit)
+            BACKSPACE(inputFileUnit)
+            BACKSPACE(inputFileUnit)
 
         ELSEIF (readLine == 'simple') THEN 
+            ! Check if this is a 2D or 3D mesh file
             inputMeshType = 'BSC'
 
         ELSE 
-            inputMeshType = 'ISM'
+            ! Check if this is a 2D or 3D mesh file
+            inputMeshType = 'ISM_2D'
 
         ENDIF
 
@@ -71,7 +102,9 @@ MODULE MeshTranslator
 
     END SUBROUTINE DetermineInputMeshType
 
-    SUBROUTINE WriteBSCMeshFile(outputFileUnit,nodeArray,elArray,BCArray,polyOrder)
+! =====================================================================================
+
+    SUBROUTINE WriteBSCMeshFile_2D(outputFileUnit,nodeArray,elArray,BCArray,polyOrder)
     ! This subroutine writes a BSC mesh file, given an array containing the nodal, 
     ! element, and boundary information. This information may be obtained using the
     ! "Read*****MeshFile_***" subroutines found below
@@ -119,11 +152,63 @@ MODULE MeshTranslator
         END DO
         WRITE(outputFileUnit,"(A12)") "end boundary"
 
-    END SUBROUTINE WriteBSCMeshFile
+    END SUBROUTINE WriteBSCMeshFile_2D
 
-    ! ================================================================================
+! ================================================================================
 
-    SUBROUTINE ReadPointwiseMeshFile_NEU(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
+    SUBROUTINE WriteBSCMeshFile_3D(outputFileUnit,nodeArray,elArray,BCArray,polyOrder)
+    ! This subroutine writes a BSC mesh file, given an array containing the nodal, 
+    ! element, and boundary information. This information may be obtained using the
+    ! "Read*****MeshFile_***" subroutines found below
+
+        IMPLICIT NONE 
+
+        ! Declare input variables 
+        INTEGER,                 INTENT(IN) :: outputFileUnit, polyOrder 
+        REAL,    DIMENSION(:,:), INTENT(IN) :: nodeArray
+        INTEGER, DIMENSION(:,:), INTENT(IN) :: elArray 
+        INTEGER, DIMENSION(:,:), INTENT(IN) :: BCArray 
+
+        ! Declare local variables
+        CHARACTER(LEN=20) :: formatNodes, formatEl1, formatEl2, formatBC
+        INTEGER           :: i
+
+        ! writing formats
+        formatNodes = "(I7,3F19.14)"
+        formatEl1   = "(I7,A7,5(I7))"
+        formatEl2   = "(8(I7))"
+        formatBC    = "(3(I6))"
+
+        ! Write the header for the bsc file
+        WRITE(outputFileUnit,"(32A)") "simple mesh format version = 1.1"
+
+        ! Write nodal info
+        WRITE(outputFileUnit,"(5A)") "nodes"
+        DO i = 1,SIZE(nodeArray(:,1))
+            WRITE(outputFileUnit,formatNodes) INT(nodeArray(i,1)), nodeArray(i,2:SIZE(nodeArray(i,:)))
+        END DO
+        WRITE(outputFileUnit,"(9A)") "end nodes"
+
+        ! Write element info
+        WRITE(outputFileUnit,"(8A)") "elements"
+        DO i = 1,SIZE(elArray(:,1))
+            WRITE(outputFileUnit, formatEl1) i, "hex", 8, 0, polyOrder, polyOrder, polyOrder
+            WRITE(outputFileUnit, formatEl2) INT(elArray(i,2:SIZE(elArray(i,:))))
+        END DO
+        WRITE(outputFileUnit, "(A12)") "end elements"
+
+        ! Write BC info
+        WRITE(outputFileUnit,"(A8)") "boundary"
+        DO i = 1,SIZE(BCArray(:,1))
+            WRITE(outputFileUnit, formatBC) INT(BCArray(i,:))
+        END DO
+        WRITE(outputFileUnit,"(A12)") "end boundary"
+
+    END SUBROUTINE WriteBSCMeshFile_3D
+
+! =============================================================================================    
+
+    SUBROUTINE ReadPointwiseMeshFile_NEU_2D(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
     ! This subroutine reads a NEU format mesh file and returns 3 arrays: nodeArray,
     ! elArray, and BCArray. These contain the node, element, and BC data 
     ! necessary to write a BSC format mesh file. For reference, the NEU format is used
@@ -156,7 +241,7 @@ MODULE MeshTranslator
         polyOrder = 4
 
         ! Terminal message for user
-        WRITE(*,*) "Format: NEU --> BSC"
+        WRITE(*,*) "Format: NEU_2D --> BSC_2D"
 
         ! Read in the first couple of lines from the .neu file; they're just header info
         ios = 0   ! if 0 the file is read successfully, of non-zero there was an error
@@ -271,11 +356,184 @@ MODULE MeshTranslator
             !WRITE(*,*) BCArray(i,:)
         END DO 
 
-    END SUBROUTINE ReadPointwiseMeshFile_NEU
+    END SUBROUTINE ReadPointwiseMeshFile_NEU_2D
+! ================================================================================
 
-    ! ================================================================================
+    SUBROUTINE ReadPointwiseMeshFile_NEU_3D(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
+    ! This subroutine reads a NEU format mesh file and returns 3 arrays: nodeArray,
+    ! elArray, and BCArray. These contain the node, element, and BC data 
+    ! necessary to write a BSC format mesh file. For reference, the NEU format is used
+    ! by the software GAMBIT.
 
-    SUBROUTINE ReadHOHQMeshFile_ISM(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
+        IMPLICIT NONE 
+
+        ! Declare input variables
+        ! Declare input variables
+        INTEGER, INTENT(IN) :: inputFileUnit
+        REAL,    DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: nodeArray
+        INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: elArray
+        INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(INOUT) :: BCArray
+        INTEGER,                              INTENT(OUT)   :: polyOrder
+
+        ! Declare local variables
+        REAL              :: x, y, z
+        INTEGER           :: totalNodeNum, totalElNum, totalBCNum
+        INTEGER           :: nodeNum, node1, node2, node3, node4, &
+                                      node5, node6, node7, node8
+        INTEGER           :: elNum, elType, BCFace
+        INTEGER           :: i, ios
+        INTEGER           :: NGRPS, dummy, count
+        CHARACTER(LEN=35) :: readLine
+        CHARACTER(LEN=20) :: BCNameNeu
+
+        ! NEU mesh files don't include a poly order so just assign here. 
+        ! polyOrder is unimportant because it is assigned in the .control file anyway
+        polyOrder = 4
+
+        ! Terminal message for user
+        WRITE(*,*) "Format: NEU_3D --> BSC_3D"
+
+        ! Read in the first couple of lines from the .neu file; they're just header info
+        ios = 0   ! if 0 the file is read successfully, of non-zero there was an error
+        READ(inputFileUnit, *, IOSTAT = ios )
+        READ(inputFileUnit, *, IOSTAT = ios )
+        READ(inputFileUnit, *, IOSTAT = ios )
+        READ(inputFileUnit, *, IOSTAT = ios )
+        READ(inputFileUnit, *, IOSTAT = ios )
+        READ(inputFileUnit, *, IOSTAT = ios )
+
+        ! Get the total element, node, and BC counts
+        READ(inputFileUnit, *, IOSTAT = ios ) totalNodeNum, totalElNum, NGRPS, totalBCNum
+
+        ! Allocate memory to node and element arrays
+        ALLOCATE( nodeArray(totalNodeNum, 4))
+        ALLOCATE( elArray(totalElNum, 9))
+
+        ! Allocate the "worst case scenario" of BC's: each element face has
+        ! a different BC type
+        ALLOCATE( BCArray(totalElNum*6,3) )
+
+        ! Skip the next two lines
+        READ(inputFileUnit, *, IOSTAT = ios )
+        READ(inputFileUnit, *, IOSTAT = ios )
+
+        ! Terminal message for user
+        WRITE(*,*) "Nodes: ", totalNodeNum, "  Elements: ", totalElNum, "  polyOrder: ", polyOrder
+
+        ! Loop through all the nodes, saving them to nodeArray and writing them to the bsc file
+        DO i = 1,totalNodeNum
+            ! Read in nodal data
+            READ(inputFileUnit, *, IOSTAT = ios) nodeNum, x, y, z
+
+            ! Save nodal data to an array
+            nodeArray(i,1) = nodeNum
+            nodeArray(i,2) = x 
+            nodeArray(i,3) = y 
+            nodeArray(i,4) = z 
+
+            ! Debug statement
+            !WRITE(*,*) nodeArray(i,:)
+        ENDDO
+
+        ! Read in the next two lines of the NEU file to skip them; they're headers
+        READ(inputFileUnit, *, IOSTAT = ios )
+        READ(inputFileUnit, *, IOSTAT = ios )
+
+        ! Loop through all elements, save to elArray, write to BSC file
+        DO i = 1,totalElNum
+            ! Read in element data
+            READ(inputFileUnit, *, IOSTAT = ios) elNum, elType, dummy, node1, node2, node4, node3, &
+                                                                       node5, node6, node8, node7
+
+            ! Save element data to array
+            elArray(i,1) = elNum
+            elArray(i,2) = node1
+            elArray(i,3) = node2
+            elArray(i,4) = node3
+            elArray(i,5) = node4
+            elArray(i,6) = node5
+            elArray(i,7) = node6
+            elArray(i,8) = node7
+            elArray(i,9) = node8
+
+            ! Debug statement
+            !WRITE(*,*) elArray(i,:)
+        ENDDO
+
+        ! Keep reading lines until you reach the boundary section -------------------------------
+        READ(inputFileUnit,*) readLine
+        DO WHILE (readLine /= 'BOUNDARY')
+            READ(inputFileUnit,*) readLine
+        END DO
+
+        ! Loop through each boundary condition
+        count = 0
+        DO i = 1,totalBCNum
+            ! Get the name of the BC from NEU file
+            READ(inputFileUnit,*,IOSTAT = ios) BCNameNeu
+
+            ! Write out the name of the BC from the Gambit file and the BCID it's being mapped to in the BSC file
+            ! for the user's convenience
+            WRITE(*,*) "BC Name:  ", BCNameNeu, "-->   BCNum:  ", i
+
+            ! Loop through each element contained in this group of BCs, write to BSC file
+            READ(inputFileUnit,*,IOSTAT = ios) readLine
+            DO WHILE (readLine /= 'ENDOFSECTION')
+                count = count + 1
+
+                ! re-read the line, saving data to proper variables
+                BACKSPACE(inputFileUnit)
+                READ(inputFileUnit, *, IOSTAT = ios) elNum, dummy, BCFace
+
+                ! Remap the BCFace; NEU and BSC use different conventions for labeling the faces of
+                ! hex elements
+                SELECT CASE (BCFace)
+                    CASE (1)
+                        BCFace = 1
+                    CASE (2) 
+                        BCFace = 4
+                    CASE (3) 
+                        BCFace = 2
+                    CASE (4) 
+                        BCFace = 6
+                    CASE (5) 
+                        BCFace = 3
+                    CASE (6)
+                        BCFace = 5
+
+                END SELECT
+
+                ! Debug statement
+                !WRITE(*,*) elNum, BCFace, i  
+
+                ! Save to BCArray
+                BCArray(count,1) = elNum
+                BCArray(count,2) = BCFace 
+                BCArray(count,3) = i 
+
+                ! Debug statement
+                !WRITE(*,*) BCArray(count,:)
+
+                READ(inputFileUnit,*,IOSTAT = ios) readLine     
+            ENDDO
+
+            ! Skip line and go into next BC section
+            READ(inputFileUnit,*, IOSTAT = ios) readLine
+        ENDDO
+
+        ! Trim the BC array as needed
+        BCArray = BCArray(1:count,:)
+
+        ! Debug statement
+        DO i = 1,size(BCArray(:,1))
+            !WRITE(*,*) BCArray(i,:)
+        END DO 
+
+    END SUBROUTINE ReadPointwiseMeshFile_NEU_3D
+
+! ================================================================================
+
+    SUBROUTINE ReadHOHQMeshFile_ISM_2D(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
     ! This subroutine reads an ISM format mesh file and returns 3 arrays: nodeArray,
     ! elArray, and BCArray. These contain the node, element, and BC data 
     ! necessary to write a BSC format mesh file.
@@ -303,7 +561,7 @@ MODULE MeshTranslator
         REAL, DIMENSION(:), ALLOCATABLE      :: BCIDArray
 
         ! Terminal message for user
-        WRITE(*,*) "Format: ISM --> BSC"
+        WRITE(*,*) "Format: ISM_2D --> BSC_2D"
 
         ! Read in node / el / type information
         READ(inputFileUnit,*,IOSTAT=ios) totalNodeNum, totalElNum, polyOrder
@@ -455,11 +713,11 @@ MODULE MeshTranslator
         DO i = 1,size(BCArray(:,1))
             !WRITE(*,*) BCArray(i,:)
         END DO           
-    END SUBROUTINE ReadHOHQMeshFile_ISM
+    END SUBROUTINE ReadHOHQMeshFile_ISM_2D
 
     ! ================================================================================
 
-    SUBROUTINE ReadHOHQMeshFile_ISMV2(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
+    SUBROUTINE ReadHOHQMeshFile_ISMV2_2D(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
     ! This subroutine reads an ISM-V2 format mesh file and returns 3 arrays: nodeArray,
     ! elArray, and BCArray. These contain the node, element, and BC data 
     ! necessary to write a BSC format mesh file.
@@ -489,11 +747,11 @@ MODULE MeshTranslator
         WRITE(*,*) "ERROR: This translator has not been designed to handle ISM-V2 format yet!"
         WRITE(*,*) "ERROR: Aborting mesh translation"
         RETURN
-    END SUBROUTINE ReadHOHQMeshFile_ISMV2
+    END SUBROUTINE ReadHOHQMeshFile_ISMV2_2D
 
     ! ================================================================================
 
-    SUBROUTINE ReadHOHQMeshFile_ISMMM(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
+    SUBROUTINE ReadHOHQMeshFile_ISMMM_2D(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
     ! This subroutine reads an ISM-MM format mesh file and returns 3 arrays: nodeArray,
     ! elArray, and BCArray. These contain the node, element, and BC data 
     ! necessary to write a BSC format mesh file.
@@ -523,7 +781,7 @@ MODULE MeshTranslator
         ! Terminal message for user
         WRITE(*,*) "WARNING: This translator has not been designed to handle muliple material information!"
         WRITE(*,*) "WARNING: All material information will be lost during this operation!"
-        WRITE(*,*) "Format: ISM-MM --> BSC"
+        WRITE(*,*) "Format: ISM-MM_2D --> BSC_2D"
 
         ! Read in node / el / type information
         READ(inputFileUnit,*,IOSTAT=ios) readLine
@@ -674,11 +932,11 @@ MODULE MeshTranslator
         DO i = 1,size(BCArray(:,1))
             !WRITE(*,*) BCArray(i,:)
         END DO  
-    END SUBROUTINE ReadHOHQMeshFile_ISMMM
+    END SUBROUTINE ReadHOHQMeshFile_ISMMM_2D
 
     ! ================================================================================
 
-    SUBROUTINE ReadHOHQMeshFile_ABAQUS(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
+    SUBROUTINE ReadHOHQMeshFile_ABAQUS_2D(inputFileUnit,nodeArray,elArray,BCArray,polyOrder)
     ! This subroutine reads an ABAQUS format mesh file and returns 3 arrays: nodeArray,
     ! elArray, and BCArray. These contain the node, element, and BC data 
     ! necessary to write a BSC format mesh file.
@@ -708,7 +966,7 @@ MODULE MeshTranslator
         WRITE(*,*) "ERROR: This translator has not been designed to handle ABAQUS format yet!"
         WRITE(*,*) "ERROR: Aborting mesh translation"
         RETURN
-    END SUBROUTINE ReadHOHQMeshFile_ABAQUS
+    END SUBROUTINE ReadHOHQMeshFile_ABAQUS_2D
 
 END MODULE MeshTranslator
 
