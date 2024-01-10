@@ -1,4 +1,7 @@
 *.neu
 *.mesh
 *.pw
+*.o
+*.mod
+*.out
 
