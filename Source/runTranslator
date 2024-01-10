@@ -1,11 +1,13 @@
 #!/bin/bash
-rm TranslatedMesh.mesh 
+meshName="AerospikeTest"
+rm $meshName.mesh 
 rm *.o *.out *.mod
-untranslatedMesh='../UntranslatedMeshes/AerospikeTest/Aerospike_JetShape.neu'
+
 gfortran -c Module_MeshTranslator.f90
 gfortran -c TranslateMeshToBSC.f90
 gfortran -o translateMesh.out Module_MeshTranslator.o TranslateMeshToBSC.o
 
+./translateMesh.out $meshName.neu $meshName.mesh
 #./translateMesh.out Box2D.neu TranslatedMesh.mesh
 #./translateMesh.out Box2D.mesh TranslatedMesh.mesh
-./translateMesh.out Aerospike.neu TranslatedMesh.mesh
+#./translateMesh.out Aerospike.neu TranslatedMesh.mesh

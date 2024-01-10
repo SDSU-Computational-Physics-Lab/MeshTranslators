@@ -143,7 +143,7 @@ MODULE MeshTranslator
         REAL              :: x, y, z
         INTEGER           :: totalNodeNum, totalElNum, totalBCNum
         INTEGER           :: nodeNum, node1, node2, node3, node4
-        INTEGER           :: elNum, elType, BCFaceUserInput
+        INTEGER           :: elNum, elType, BCFace
         INTEGER           :: i, ios
         INTEGER           :: NGRPS, dummy, count
         CHARACTER(LEN=35) :: readLine
@@ -232,24 +232,25 @@ MODULE MeshTranslator
             ! Get the name of the BC from NEU file
             READ(inputFileUnit,*,IOSTAT = ios) BCNameNeu
 
-            ! Get user input on what the BC face is for this BC type; will be applied to ALL elements
-            WRITE(*,*) "NEU mesh file BC name: ", BCNameNeu
-            WRITE(*,*) "    What element face will this be applied to? (1-4):  "
-            READ *, BCFaceUserInput
+            ! Write out the name of the BC from the Gambit file and the BCID it's being mapped to in the BSC file
+            ! for the user's convenience
+            WRITE(*,*) "BC Name:  ", BCNameNeu, "-->   BCNum:  ", i
 
             ! Loop through each element contained in this group of BCs, write to BSC file
             READ(inputFileUnit,*,IOSTAT = ios) readLine
             DO WHILE (readLine /= 'ENDOFSECTION')
                 count = count + 1
-                ! Convert element number to INT type
-                READ(readLine, *) elNum
+
+                ! re-read the line, saving data to proper variables
+                BACKSPACE(inputFileUnit)
+                READ(inputFileUnit, *, IOSTAT = ios) elNum, dummy, BCFace
 
                 ! Debug statement
-                !WRITE(*,*) elNum, BCFaceUserInput, i  
+                !WRITE(*,*) elNum, BCFace, i  
 
                 ! Save to BCArray
                 BCArray(count,1) = elNum
-                BCArray(count,2) = BCFaceUserInput 
+                BCArray(count,2) = BCFace 
                 BCArray(count,3) = i 
 
                 ! Debug statement
