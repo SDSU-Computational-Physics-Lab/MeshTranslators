@@ -1,7 +1,7 @@
                                                                         S      1
-,,14HSingleShear v2,11HSingleShear,7Hunknown,7Hunknown,32,38,7,99,15,,  G      1
-1.,6,1HM,1,0.08,15H20231208.092024,1D-5,10000.,7Hunknown,7Hunknown,11,0,G      2
-15H20231208.172019;                                                     G      3
+,,13HSHEAR_TEST v1,10HSHEAR_TEST,7Hunknown,7Hunknown,32,38,7,99,15,,1., G      1
+6,1HM,1,0.08,15H20240103.114312,1D-5,10000.,7Hunknown,7Hunknown,11,0,15HG      2
+20240103.193552;                                                        G      3
      143       1                                                00000000D      1
      143       0     -17       1       0                               0D      2
      141       2                                                00010000D      3
